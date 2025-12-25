@@ -148,6 +148,36 @@ else
     warn "Source agent directory not found, skipping copy"
 fi
 
+# Step 8: Configure Shell Alias
+info "Configuring shell alias..."
+ALIAS_CMD='alias opencode-remote="opencode --hostname localhost --port 4096"'
+SHELL_RC=""
+
+if [[ -f "$HOME/.zshrc" ]]; then
+    SHELL_RC="$HOME/.zshrc"
+elif [[ -f "$HOME/.bashrc" ]]; then
+    SHELL_RC="$HOME/.bashrc"
+fi
+
+if [[ -n "$SHELL_RC" ]]; then
+    if grep -Fxq "$ALIAS_CMD" "$SHELL_RC"; then
+        success "Alias already exists in $SHELL_RC"
+    else
+        # Append nicely with a comment
+        {
+            echo ""
+            echo "# OpenCode Multi-Agent Orchestration"
+            echo "$ALIAS_CMD"
+        } >> "$SHELL_RC"
+        
+        success "Alias added to $SHELL_RC"
+        info "You may need to run 'source $SHELL_RC' or restart your terminal."
+    fi
+else
+    warn "Could not find .zshrc or .bashrc. Please add the alias manually:"
+    echo "  $ALIAS_CMD"
+fi
+
 # Done
 echo ""
 echo "==========================================="
@@ -165,10 +195,6 @@ echo "     uv run debate start \"Add authentication to the API\""
 echo ""
 echo "  3. Or use with OpenCode:"
 echo "     opencode --agent orchestrator"
-echo ""
-echo "  4. Setup convenient alias (Recommended):"
-echo "     Add this to your shell profile (.zshrc or .bashrc):"
-echo "     alias opencode-remote=\"opencode --hostname localhost --port 4096\""
 echo ""
 echo "Database commands (from ~/.config/opencode/multi-agent-orchestration):"
 echo "  docker-compose up -d             - Start services"
