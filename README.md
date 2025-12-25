@@ -1,6 +1,6 @@
 # Multi-Agent Orchestration
 
-[![CI](https://github.com/yourusername/multi-agent-orchestration/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/multi-agent-orchestration/actions/workflows/ci.yml)
+[![CI](https://github.com/Dinesh7N/multi-agent-orchestration/actions/workflows/ci.yml/badge.svg)](https://github.com/Dinesh7N/multi-agent-orchestration/actions/workflows/ci.yml)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -40,7 +40,7 @@ A sophisticated orchestration system that coordinates multiple AI agents (Gemini
     ```bash
     mkdir -p ~/.config/opencode
     cd ~/.config/opencode
-    git clone https://github.com/yourusername/multi-agent-orchestration.git
+    git clone https://github.com/Dinesh7N/multi-agent-orchestration.git
     cd multi-agent-orchestration
     ```
 
@@ -226,7 +226,7 @@ This project is designed to work with [opencode](https://github.com/anthropics/o
 1. **Install in opencode config directory**:
    ```bash
    cd ~/.config/opencode
-   git clone https://github.com/yourusername/multi-agent-orchestration.git
+   git clone https://github.com/Dinesh7N/multi-agent-orchestration.git
    ```
 
 2. **Start infrastructure**:
@@ -395,8 +395,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - Documentation: [docs/](docs/)
-- Issues: [GitHub Issues](https://github.com/yourusername/debate-workflow/issues)
-- Discussions: [GitHub Discussions](https://github.com/yourusername/debate-workflow/discussions)
+- Issues: [GitHub Issues](https://github.com/Dinesh7N/debate-workflow/issues)
+- Discussions: [GitHub Discussions](https://github.com/Dinesh7N/debate-workflow/discussions)
 
 ---
 

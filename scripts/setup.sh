@@ -88,7 +88,7 @@ done
 
 # Step 2: Create virtual environment
 info "Creating virtual environment..."
-cd "$SCRIPTS_DIR"
+cd "$OPENCODE_DIR"
 
 if [[ ! -d ".venv" ]]; then
     uv venv
@@ -130,7 +130,7 @@ info "Testing CLI..."
 if uv run debate --help &>/dev/null; then
     success "CLI is working"
 else
-    warn "CLI not working. Try: cd $SCRIPTS_DIR && uv pip install -e . --reinstall"
+    warn "CLI not working. Try: cd $OPENCODE_DIR && uv pip install -e . --reinstall"
 fi
 
 # Done
@@ -141,7 +141,7 @@ echo "==========================================="
 echo ""
 echo "Next steps:"
 echo ""
-echo "  1. Test the CLI (from ~/.config/opencode/scripts):"
+echo "  1. Test the CLI (from ~/.config/opencode/multi-agent-orchestration):"
 echo "     uv run debate list-tasks"
 echo "     uv run debate db-info"
 echo ""
