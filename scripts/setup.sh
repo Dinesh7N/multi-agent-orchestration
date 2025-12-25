@@ -133,6 +133,51 @@ else
     warn "CLI not working. Try: cd $OPENCODE_DIR && uv pip install -e . --reinstall"
 fi
 
+# Step 7: Copy agent files
+info "Copying agent files to ~/.config/opencode/agent..."
+TARGET_AGENT_DIR="$HOME/.config/opencode/agent"
+
+if [[ -d "agent" ]]; then
+    mkdir -p "$TARGET_AGENT_DIR"
+    if cp -R agent/* "$TARGET_AGENT_DIR/"; then
+        success "Agent files copied to $TARGET_AGENT_DIR"
+    else
+        warn "Failed to copy agent files"
+    fi
+else
+    warn "Source agent directory not found, skipping copy"
+fi
+
+# Step 8: Configure Shell Alias
+info "Configuring shell alias..."
+ALIAS_CMD='alias opencode-remote="opencode --hostname localhost --port 4096"'
+SHELL_RC=""
+
+if [[ -f "$HOME/.zshrc" ]]; then
+    SHELL_RC="$HOME/.zshrc"
+elif [[ -f "$HOME/.bashrc" ]]; then
+    SHELL_RC="$HOME/.bashrc"
+fi
+
+if [[ -n "$SHELL_RC" ]]; then
+    if grep -Fxq "$ALIAS_CMD" "$SHELL_RC"; then
+        success "Alias already exists in $SHELL_RC"
+    else
+        # Append nicely with a comment
+        {
+            echo ""
+            echo "# OpenCode Multi-Agent Orchestration"
+            echo "$ALIAS_CMD"
+        } >> "$SHELL_RC"
+        
+        success "Alias added to $SHELL_RC"
+        info "You may need to run 'source $SHELL_RC' or restart your terminal."
+    fi
+else
+    warn "Could not find .zshrc or .bashrc. Please add the alias manually:"
+    echo "  $ALIAS_CMD"
+fi
+
 # Done
 echo ""
 echo "==========================================="

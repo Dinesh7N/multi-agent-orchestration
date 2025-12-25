@@ -26,11 +26,23 @@ A sophisticated orchestration system that coordinates multiple AI agents (Gemini
 ### Prerequisites
 
 - **OpenCode CLI**: `brew install opencode` (or see [docs](https://opencode.ai/docs/))
+- **Authentication**: Run `opencode auth login` to authenticate with providers (see [docs](https://opencode.ai/docs/cli/#login))
 - Python 3.12 or higher
 - PostgreSQL 14+
 - Redis 5+
 - Docker (recommended for database)
 - [uv](https://github.com/astral-sh/uv) package manager
+
+### Authentication Options
+
+To use the AI agents, you must be authenticated with the respective providers.
+
+1.  **Standard Authentication**:
+    Run `opencode auth login` to authenticate using your API keys.
+    [Documentation](https://opencode.ai/docs/cli/#login)
+
+2.  **Advanced / Subscription-based**:
+    If you prefer to use subscriptions (e.g., Antigravity, ChatGPT Pro) instead of direct API keys, or for advanced configuration, check out [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode). This tool extends opencode to support subscription-based models not available out-of-the-box.
 
 ### Installation
 
