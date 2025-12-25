@@ -133,6 +133,21 @@ else
     warn "CLI not working. Try: cd $OPENCODE_DIR && uv pip install -e . --reinstall"
 fi
 
+# Step 7: Copy agent files
+info "Copying agent files to ~/.config/opencode/agent..."
+TARGET_AGENT_DIR="$HOME/.config/opencode/agent"
+
+if [[ -d "agent" ]]; then
+    mkdir -p "$TARGET_AGENT_DIR"
+    if cp -R agent/* "$TARGET_AGENT_DIR/"; then
+        success "Agent files copied to $TARGET_AGENT_DIR"
+    else
+        warn "Failed to copy agent files"
+    fi
+else
+    warn "Source agent directory not found, skipping copy"
+fi
+
 # Done
 echo ""
 echo "==========================================="
