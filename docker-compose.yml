@@ -1,0 +1,64 @@
+services:
+  debate-db:
+    image: postgres:18.1-alpine3.22
+    container_name: opencode-debate-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: debate
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: agent
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "15432:5432"
+    volumes:
+      - debate-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d debate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - debate-network
+
+  opencode:
+    image: ghcr.io/sst/opencode
+    container_name: opencode-server
+    restart: unless-stopped
+    command: ["serve", "--hostname", "0.0.0.0", "--port", "4096"]
+    ports:
+      - "4096:4096"
+    volumes:
+      - ${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}:/root/.config/opencode
+    networks:
+      - debate-network
+
+  debate-redis:
+    image: valkey/valkey:8.0-alpine
+    container_name: opencode-debate-redis
+    restart: unless-stopped
+    ports:
+      - "16379:6379"
+    command: >
+      valkey-server
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - debate-network
+    volumes:
+      - redis-data:/data
+
+volumes:
+  debate-pgdata:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  debate-network:
+    driver: bridge
