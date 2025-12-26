@@ -203,9 +203,7 @@ def display_consensus_results(breakdown):
     table.add_row("Category Agreement", f"{breakdown.category_score:.1f}%", "40%")
     table.add_row("File Path Agreement", f"{breakdown.file_path_score:.1f}%", "30%")
     table.add_row("Severity Agreement", f"{breakdown.severity_score:.1f}%", "10%")
-    table.add_row(
-        "Recommendation Similarity", f"{breakdown.recommendation_score:.1f}%", "20%"
-    )
+    table.add_row("Recommendation Similarity", f"{breakdown.recommendation_score:.1f}%", "20%")
     table.add_row("", "", "", style="dim")
     table.add_row(
         "[bold]Overall Consensus[/bold]",
@@ -221,14 +219,10 @@ def display_consensus_results(breakdown):
         console.print("Agents are in substantial agreement. Proceed with implementation.")
     elif breakdown.overall_score >= 60:
         console.print("\n[bold yellow]⚠ Moderate consensus[/bold yellow]")
-        console.print(
-            "Some agreement, but consider another debate round to refine approach."
-        )
+        console.print("Some agreement, but consider another debate round to refine approach.")
     else:
         console.print("\n[bold red]✗ Low consensus[/bold red]")
-        console.print(
-            "Significant disagreement. Additional rounds needed or human intervention."
-        )
+        console.print("Significant disagreement. Additional rounds needed or human intervention.")
 
 
 async def main():

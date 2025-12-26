@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -102,7 +101,7 @@ async def log_cost(
     model: str,
     operation: str,
     usage: TokenUsage,
-    analysis_id: Optional[str] = None,
+    analysis_id: str | None = None,
 ) -> CostLog:
     """Log a cost entry and update task totals."""
     pricing = await get_pricing(session, model)

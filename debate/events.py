@@ -4,11 +4,11 @@ Standardized event system for debate workflow.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
 import json
-from typing import Any, Optional
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 from uuid import UUID, uuid4
 
 
@@ -46,7 +46,7 @@ class EventActions:
     """Actions that can be triggered by an event."""
 
     escalate: bool = False
-    transfer_to: Optional[str] = None
+    transfer_to: str | None = None
     retry: bool = False
     pause: bool = False
 
@@ -65,15 +65,15 @@ class DebateEvent:
 
     id: UUID = field(default_factory=uuid4)
     type: EventType = EventType.WORKFLOW_STARTED
-    task_id: Optional[UUID] = None
-    round_number: Optional[int] = None
-    phase: Optional[str] = None
-    agent: Optional[str] = None
+    task_id: UUID | None = None
+    round_number: int | None = None
+    phase: str | None = None
+    agent: str | None = None
     message: str = ""
     data: dict[str, Any] = field(default_factory=dict)
     actions: EventActions = field(default_factory=EventActions)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    duration_ms: Optional[int] = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    duration_ms: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {

@@ -39,7 +39,7 @@ async def init_db() -> None:
 
 
 @asynccontextmanager
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     """Async context manager for database sessions."""
     async with async_session_factory() as session:
         try:

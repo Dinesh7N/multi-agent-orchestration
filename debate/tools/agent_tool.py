@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from ..run_agent import AgentResult, AgentType, Phase, run_agent
 
@@ -17,7 +17,7 @@ class ToolResult:
 
     success: bool
     output: Any
-    error: Optional[str] = None
+    error: str | None = None
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self) -> None:
@@ -42,8 +42,8 @@ class AgentTool(BaseTool):
     def __init__(
         self,
         agent_type: AgentType,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ):
         self.agent_type = agent_type
         self.name = name or f"{agent_type.value}_tool"
@@ -105,7 +105,7 @@ class ToolRegistry:
     def register(self, tool: BaseTool) -> None:
         self._tools[tool.name] = tool
 
-    def get(self, name: str) -> Optional[BaseTool]:
+    def get(self, name: str) -> BaseTool | None:
         return self._tools.get(name)
 
     def list_tools(self) -> list[str]:

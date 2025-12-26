@@ -4,13 +4,13 @@ Multi-factor consensus calculation for debate rounds.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from math import sqrt
-from typing import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import Analysis, Finding, Round
+from .models import Finding, Round
 
 
 @dataclass
@@ -164,7 +164,9 @@ class ConsensusCalculator:
             return 0.0
 
         if self._embedding_client:
-            embeddings = await self._get_embeddings(self._embedding_client, gemini_recs, claude_recs)
+            embeddings = await self._get_embeddings(
+                self._embedding_client, gemini_recs, claude_recs
+            )
             if embeddings:
                 return embeddings
 
