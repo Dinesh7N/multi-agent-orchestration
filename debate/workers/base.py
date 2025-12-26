@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-import time
 import signal
+import time
 from dataclasses import dataclass
 from typing import Any
 
-from ..config import settings
-from ..queue import STREAM_ANALYSIS, STREAM_IMPLEMENT, STREAM_PRIORITY, stream_for_agent
+from ..queue import STREAM_PRIORITY, stream_for_agent
 from ..redis_client import get_redis_client
 
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, TypeVar
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,26 +44,26 @@ class WorkflowResult:
 
     status: WorkflowStatus
     output: Any = None
-    error: Optional[str] = None
-    next_step: Optional[str] = None
+    error: str | None = None
+    next_step: str | None = None
 
     @classmethod
-    def success(cls, output: Any = None) -> "WorkflowResult":
+    def success(cls, output: Any = None) -> WorkflowResult:
         return cls(status=WorkflowStatus.COMPLETED, output=output)
 
     @classmethod
-    def failed(cls, error: str) -> "WorkflowResult":
+    def failed(cls, error: str) -> WorkflowResult:
         return cls(status=WorkflowStatus.FAILED, error=error)
 
     @classmethod
-    def paused(cls, reason: str) -> "WorkflowResult":
+    def paused(cls, reason: str) -> WorkflowResult:
         return cls(status=WorkflowStatus.PAUSED, output=reason)
 
 
 T = TypeVar("T")
 
 
-class WorkflowStep(ABC, Generic[T]):
+class WorkflowStep[T](ABC):
     """Base class for a workflow step."""
 
     name: str
@@ -148,7 +148,7 @@ class LoopWorkflow(WorkflowStep):
         name: str,
         steps: list[WorkflowStep],
         max_iterations: int = 3,
-        break_condition: Optional[callable] = None,
+        break_condition: callable | None = None,
     ):
         self.name = name
         self.steps = steps
