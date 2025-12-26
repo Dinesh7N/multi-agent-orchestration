@@ -3,13 +3,13 @@ name = "multi-agent-orchestration"
 version = "0.1.0"
 description = "Multi-agent debate workflow for AI-assisted code analysis with opencode"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 license = {text = "MIT"}
 authors = [
-    {name = "Dinesh Kumar Nalluri", email = "your.email@example.com"}
+    {name = "Dinesh Kumar Nalluri", email = "dineshkumarnalluri@outlook.com"}
 ]
 maintainers = [
-    {name = "Dinesh Kumar Nalluri", email = "your.email@example.com"}
+    {name = "Dinesh Kumar Nalluri", email = "dineshkumarnalluri@outlook.com"}
 ]
 keywords = [
     "ai",
@@ -29,8 +29,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Code Generators",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -39,35 +38,33 @@ classifiers = [
 ]
 dependencies = [
     "sqlalchemy[asyncio]>=2.0.0",
-    "asyncpg>=0.29.0",
+    "asyncpg==0.31.0",
     "psycopg2-binary>=2.9.0",
-    "alembic>=1.13.0",
-    "click>=8.0.0",
-    "python-dotenv>=1.0.0",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "redis>=5.0.0",
-    "rich>=13.0.0",
-    "anyio>=4.0.0",
-    "httpx>=0.27.0",
-    "httpx-sse>=0.4.0",
+    "alembic==1.17.2",
+    "click==8.3.1",
+    "python-dotenv==1.2.1",
+    "pydantic==2.12.5",
+    "pydantic-settings==2.12.0",
+    "redis==7.1.0",
+    "rich==14.2.0",
+    "anyio==4.12.0",
+    "httpx==0.28.1",
+    "httpx-sse==0.4.3",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/multi-agent-orchestration"
-Documentation = "https://github.com/yourusername/multi-agent-orchestration/tree/main/docs"
-Repository = "https://github.com/yourusername/multi-agent-orchestration"
-Issues = "https://github.com/yourusername/multi-agent-orchestration/issues"
-Changelog = "https://github.com/yourusername/multi-agent-orchestration/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Dinesh7N/multi-agent-orchestration"
+Documentation = "https://github.com/Dinesh7N/multi-agent-orchestration/tree/main/docs"
+Repository = "https://github.com/Dinesh7N/multi-agent-orchestration"
+Issues = "https://github.com/Dinesh7N/multi-agent-orchestration/issues"
+Changelog = "https://github.com/Dinesh7N/multi-agent-orchestration/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
-    "ruff>=0.4.0",
-    "mypy>=1.10.0",
-    "twine>=5.0.0",
-    "build>=1.0.0",
+    "pytest==9.0.2",
+    "pytest-asyncio==1.3.0",
+    "ruff==0.14.10",
+    "mypy==1.19.1",
 ]
 
 [project.scripts]
@@ -93,7 +90,7 @@ target-version = "py312"
 select = ["E", "F", "I", "N", "W", "UP"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
@@ -106,3 +103,6 @@ asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
+
+[tool.ty.environment]
+python = ".venv"
