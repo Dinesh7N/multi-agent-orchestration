@@ -80,8 +80,7 @@ async def main():
     """Main execution function."""
     console.print(
         Panel.fit(
-            "[bold]Basic Task Example[/bold]\n"
-            "Demonstrates creating and managing debate tasks",
+            "[bold]Basic Task Example[/bold]\nDemonstrates creating and managing debate tasks",
             border_style="blue",
         )
     )
@@ -96,9 +95,7 @@ async def main():
         console.print("\n[bold green]Task created successfully![/bold green]")
         console.print("\nNext steps:")
         console.print("1. Start workers: [cyan]uv run claude-worker[/cyan]")
-        console.print(
-            f"2. View status: [cyan]uv run debate status {task.slug}[/cyan]"
-        )
+        console.print(f"2. View status: [cyan]uv run debate status {task.slug}[/cyan]")
         console.print("3. Monitor progress in the database")
 
     except Exception as e:

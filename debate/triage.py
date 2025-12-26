@@ -100,13 +100,9 @@ class TaskTriager:
             + (0.3 - self._history_weight) * 0.5
         )
 
-        complexity, reasons = self._score_to_complexity(
-            final_score, keyword_score, scope_score
-        )
+        complexity, reasons = self._score_to_complexity(final_score, keyword_score, scope_score)
 
-        confidence = self._calculate_confidence(
-            keyword_score, scope_score, history_score
-        )
+        confidence = self._calculate_confidence(keyword_score, scope_score, history_score)
 
         recommended_action = self._get_recommended_action(complexity)
         requires_confirmation = confidence < 0.7 or (
@@ -143,12 +139,8 @@ class TaskTriager:
         return 0.5
 
     def _scope_analysis(self, text: str) -> float:
-        single_matches = sum(
-            1 for pattern in self.SINGLE_FILE_PATTERNS if re.search(pattern, text)
-        )
-        multi_matches = sum(
-            1 for pattern in self.MULTI_FILE_PATTERNS if re.search(pattern, text)
-        )
+        single_matches = sum(1 for pattern in self.SINGLE_FILE_PATTERNS if re.search(pattern, text))
+        multi_matches = sum(1 for pattern in self.MULTI_FILE_PATTERNS if re.search(pattern, text))
 
         if multi_matches > 0:
             return 0.9
