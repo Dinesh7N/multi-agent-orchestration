@@ -64,37 +64,35 @@ class Task(Base):
     metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
 
     # Relationships
-    conversations: Mapped[list["Conversation"]] = relationship(
+    conversations: Mapped[list[Conversation]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    explorations: Mapped[list["Exploration"]] = relationship(
+    explorations: Mapped[list[Exploration]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    rounds: Mapped[list["Round"]] = relationship(
+    rounds: Mapped[list[Round]] = relationship(back_populates="task", cascade="all, delete-orphan")
+    analyses: Mapped[list[Analysis]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    analyses: Mapped[list["Analysis"]] = relationship(
+    questions: Mapped[list[Question]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    questions: Mapped[list["Question"]] = relationship(
+    decisions: Mapped[list[Decision]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    decisions: Mapped[list["Decision"]] = relationship(
+    findings: Mapped[list[Finding]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    findings: Mapped[list["Finding"]] = relationship(
+    consensus: Mapped[list[Consensus]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    consensus: Mapped[list["Consensus"]] = relationship(
+    impl_tasks: Mapped[list[ImplTask]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    impl_tasks: Mapped[list["ImplTask"]] = relationship(
+    verifications: Mapped[list[Verification]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
-    verifications: Mapped[list["Verification"]] = relationship(
-        back_populates="task", cascade="all, delete-orphan"
-    )
-    execution_logs: Mapped[list["ExecutionLog"]] = relationship(
+    execution_logs: Mapped[list[ExecutionLog]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
 
@@ -115,7 +113,7 @@ class Conversation(Base):
     phase: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="conversations")
+    task: Mapped[Task] = relationship(back_populates="conversations")
 
 
 class Exploration(Base):
@@ -142,7 +140,7 @@ class Exploration(Base):
     cost_estimate: Mapped[Decimal | None] = mapped_column(Numeric(10, 6), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="explorations")
+    task: Mapped[Task] = relationship(back_populates="explorations")
 
 
 class Round(Base):
@@ -167,14 +165,14 @@ class Round(Base):
 
     __table_args__ = (UniqueConstraint("task_id", "round_number"),)
 
-    task: Mapped["Task"] = relationship(back_populates="rounds")
-    analyses: Mapped[list["Analysis"]] = relationship(
+    task: Mapped[Task] = relationship(back_populates="rounds")
+    analyses: Mapped[list[Analysis]] = relationship(
         back_populates="round", cascade="all, delete-orphan"
     )
-    findings: Mapped[list["Finding"]] = relationship(
+    findings: Mapped[list[Finding]] = relationship(
         back_populates="round", cascade="all, delete-orphan"
     )
-    questions: Mapped[list["Question"]] = relationship(
+    questions: Mapped[list[Question]] = relationship(
         back_populates="round", cascade="all, delete-orphan"
     )
 
@@ -216,8 +214,8 @@ class Analysis(Base):
 
     __table_args__ = (UniqueConstraint("task_id", "round_id", "agent"),)
 
-    task: Mapped["Task"] = relationship(back_populates="analyses")
-    round: Mapped["Round"] = relationship(back_populates="analyses")
+    task: Mapped[Task] = relationship(back_populates="analyses")
+    round: Mapped[Round] = relationship(back_populates="analyses")
 
 
 class Question(Base):
@@ -247,8 +245,8 @@ class Question(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    task: Mapped["Task"] = relationship(back_populates="questions")
-    round: Mapped["Round"] = relationship(back_populates="questions")
+    task: Mapped[Task] = relationship(back_populates="questions")
+    round: Mapped[Round] = relationship(back_populates="questions")
 
 
 class Decision(Base):
@@ -272,7 +270,7 @@ class Decision(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="decisions")
+    task: Mapped[Task] = relationship(back_populates="decisions")
 
 
 class Finding(Base):
@@ -308,8 +306,8 @@ class Finding(Base):
     metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="findings")
-    round: Mapped["Round"] = relationship(back_populates="findings")
+    task: Mapped[Task] = relationship(back_populates="findings")
+    round: Mapped[Round] = relationship(back_populates="findings")
 
 
 class Consensus(Base):
@@ -333,8 +331,8 @@ class Consensus(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="consensus")
-    disagreements: Mapped[list["Disagreement"]] = relationship(
+    task: Mapped[Task] = relationship(back_populates="consensus")
+    disagreements: Mapped[list[Disagreement]] = relationship(
         back_populates="consensus", cascade="all, delete-orphan"
     )
 
@@ -365,8 +363,8 @@ class Disagreement(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship()
-    consensus: Mapped["Consensus"] = relationship(back_populates="disagreements")
+    task: Mapped[Task] = relationship()
+    consensus: Mapped[Consensus] = relationship(back_populates="disagreements")
 
 
 class ImplTask(Base):
@@ -400,7 +398,7 @@ class ImplTask(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="impl_tasks")
+    task: Mapped[Task] = relationship(back_populates="impl_tasks")
 
 
 class Verification(Base):
@@ -440,7 +438,7 @@ class Verification(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    task: Mapped["Task"] = relationship(back_populates="verifications")
+    task: Mapped[Task] = relationship(back_populates="verifications")
 
 
 class ExecutionLog(Base):
@@ -462,7 +460,7 @@ class ExecutionLog(Base):
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    task: Mapped["Task"] = relationship(back_populates="execution_logs")
+    task: Mapped[Task] = relationship(back_populates="execution_logs")
 
 
 class CostLog(Base):
