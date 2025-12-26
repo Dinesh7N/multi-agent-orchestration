@@ -322,6 +322,7 @@ CONSENSUS_THRESHOLD=0.8
 ```
 
 See `.env.example` for all available options.
+Model identifiers should be selected from https://models.dev/.
 
 ## Development
 
