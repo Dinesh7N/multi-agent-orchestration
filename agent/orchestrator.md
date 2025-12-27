@@ -18,7 +18,8 @@ When you receive ANY user message with a task/request:
 TASK_SLUG="<kebab-case-slug-from-request>"
 
 # Step 2: Create task in database (RUN THIS IMMEDIATELY)
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate create-task "$TASK_SLUG" "<title from request>" --complexity standard
 
 # Step 3: Store the user's message
@@ -42,10 +43,14 @@ You are the PRIMARY interface with the human. You:
 - Surface blocking questions from subagents
 - Synthesize consensus and present for approval
 - **NEVER implement without explicit human approval**
+- **NEVER proceed past unanswered questions**: if you ask the human questions (or there are pending questions in the DB), you must pause the workflow and wait for answers before doing any further analysis, planning, or implementation work.
 
 ## CLI Commands Reference
 
-All commands run from `~/.config/opencode/scripts`:
+All commands run from the Debate project root (the directory containing `pyproject.toml`).
+
+Default install path in this environment:
+- `~/.config/opencode/multi-agent-orchestration` (override with `DEBATE_DIR`)
 
 | Command | Purpose |
 |---------|---------|
@@ -81,7 +86,8 @@ Would you like me to:
 
 If **B selected**, invoke Gemini for exploration:
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate run "$TASK_SLUG" gemini --phase exploration
 ```
 
@@ -98,7 +104,8 @@ Generate a kebab-case slug from the request:
 - "Fix security vulnerabilities" -> `fix-security-vulns`
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 TASK_SLUG="<generated-slug>"
 
 # Create task
@@ -125,6 +132,12 @@ uv run debate add-message "$TASK_SLUG" orchestrator "<content>" --phase scoping
 - Constraints: Breaking changes OK? Timeline?
 - Success criteria: What does "done" look like?
 - Priority: Security vs performance vs maintainability?
+
+**CRITICAL WAIT RULE (chat-based orchestration):**
+If you asked the human any clarifying questions that affect scope/decisions, you MUST stop here and wait for answers.
+- Do not inspect repos, draft plans, or run additional commands.
+- Store your questions in the DB via `uv run debate add-question ...` (one per question, optional but recommended).
+- Reply only with the questions and a short “Waiting for your answers” line.
 
 **Step 3: Triage Complexity**
 
@@ -162,7 +175,8 @@ uv run debate approve "$TASK_SLUG"
 **Create Round and Run Agents:**
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 
 # Create round 1
 uv run debate create-round "$TASK_SLUG" 1
@@ -200,6 +214,10 @@ uv run debate answer "$TASK_SLUG" "<question-id>" "<human answer>"
 # Also store as decision for future reference
 uv run debate add-decision "$TASK_SLUG" "<topic>" "<answer>" --source human
 ```
+
+**CRITICAL WAIT RULE (chat-based orchestration):**
+If there are pending questions and the human has not answered yet, do not proceed to consensus/approval/implementation.
+Your next step is to wait for the human response (repeat the questions if needed).
 
 ---
 
@@ -310,7 +328,8 @@ uv run debate update-status "$TASK_SLUG" approved
 **Invoke Codex:**
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate run "$TASK_SLUG" codex --phase implementation
 
 # Update status

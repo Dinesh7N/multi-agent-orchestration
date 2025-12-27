@@ -12,7 +12,8 @@ def _require_httpx() -> Any:
         return importlib.import_module("httpx")
     except ModuleNotFoundError as e:
         raise OpencodeAPIError(
-            "Missing dependency 'httpx'. Install it in opencode/scripts (see pyproject.toml)."
+            "Missing dependency 'httpx'. Install it in this project's environment "
+            "(see pyproject.toml)."
         ) from e
 
 
@@ -21,7 +22,8 @@ def _require_httpx_sse() -> Any:
         return importlib.import_module("httpx_sse")
     except ModuleNotFoundError as e:
         raise OpencodeAPIError(
-            "Missing dependency 'httpx-sse'. Install it in opencode/scripts (see pyproject.toml)."
+            "Missing dependency 'httpx-sse'. Install it in this project's environment "
+            "(see pyproject.toml)."
         ) from e
 
 

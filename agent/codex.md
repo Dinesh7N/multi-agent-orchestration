@@ -20,7 +20,8 @@ You are **Codex**, the implementation agent that executes approved changes from 
 **CRITICAL: Never implement without approval!**
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate check-approval "<task-slug>"
 ```
 
@@ -37,7 +38,8 @@ If not approved, abort immediately.
 Get pending tasks in sequence order:
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate get-impl-tasks "<task-slug>"
 ```
 
@@ -79,7 +81,8 @@ For each task:
 
 **1. Mark task as in_progress:**
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate update-impl-task "<impl-task-id>" in_progress
 ```
 
@@ -174,7 +177,8 @@ Proceed with deletion if safe.
 Check progress at any time:
 
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate impl-progress "<task-slug>"
 ```
 
@@ -197,7 +201,8 @@ Returns:
 
 **If Codex fails to make a change:**
 ```bash
-cd ~/.config/opencode/scripts
+DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+cd "$DEBATE_DIR"
 uv run debate update-impl-task "<impl-task-id>" failed --error "Codex execution failed: <details>"
 uv run debate log-event "<task-slug>" implementation failed --agent codex --message "Task failed: <task-title>"
 
