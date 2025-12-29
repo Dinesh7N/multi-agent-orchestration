@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Track running agent processes for manual termination
 RUNNING_AGENTS: dict[str, int] = {}  # agent_key -> PID
@@ -29,6 +29,10 @@ def _default_agent_dir() -> Path:
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+
+    # NOTE: `.env` commonly contains non-DEBATE settings (e.g. ROLE_*_MODEL overrides).
+    # Alembic imports this module during migrations, so we must not fail on unknown keys.
+    model_config = SettingsConfigDict(env_prefix="DEBATE_", env_file=".env", extra="ignore")
 
     # Database
     db_host: str = "localhost"
@@ -76,10 +80,6 @@ class Settings(BaseSettings):
     def async_database_url(self) -> str:
         """Async SQLAlchemy database URL."""
         return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
-
-    class Config:
-        env_prefix = "DEBATE_"
-        env_file = ".env"
 
 
 # Global settings instance
