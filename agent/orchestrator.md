@@ -18,7 +18,7 @@ When you receive ANY user message with a task/request:
 TASK_SLUG="<kebab-case-slug-from-request>"
 
 # Step 2: Create task in database (RUN THIS IMMEDIATELY)
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate create-task "$TASK_SLUG" "<title from request>" --complexity standard
 
@@ -86,7 +86,7 @@ Would you like me to:
 
 If **B selected**, invoke Gemini for exploration:
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate run "$TASK_SLUG" gemini --phase exploration
 ```
@@ -104,7 +104,7 @@ Generate a kebab-case slug from the request:
 - "Fix security vulnerabilities" -> `fix-security-vulns`
 
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 TASK_SLUG="<generated-slug>"
 
@@ -175,7 +175,7 @@ uv run debate approve "$TASK_SLUG"
 **Create Round and Run Agents:**
 
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 
 # Create round 1
@@ -328,7 +328,7 @@ uv run debate update-status "$TASK_SLUG" approved
 **Invoke Codex:**
 
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate run "$TASK_SLUG" codex --phase implementation
 

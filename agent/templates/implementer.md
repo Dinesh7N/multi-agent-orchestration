@@ -20,7 +20,7 @@ You are fulfilling the **IMPLEMENTER** role. Your job is to execute approved imp
 **CRITICAL: Never implement without approval!**
 
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate check-approval "<task-slug>"
 ```
@@ -38,7 +38,7 @@ If not approved, abort immediately.
 Get pending tasks in sequence order:
 
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate get-impl-tasks "<task-slug>"
 ```
@@ -81,7 +81,7 @@ For each task:
 
 **1. Mark task as in_progress:**
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate update-impl-task "<impl-task-id>" in_progress
 ```
@@ -145,7 +145,7 @@ If validation fails, mark as failed and stop.
 
 **If you fail to make a change:**
 ```bash
-DEBATE_DIR="${DEBATE_DIR:-~/.config/opencode/multi-agent-orchestration}"
+DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
 cd "$DEBATE_DIR"
 uv run debate update-impl-task "<impl-task-id>" failed --error "Implementation failed: <details>"
 uv run debate log-event "<task-slug>" implementation failed --agent implementer --message "Task failed: <task-title>"
