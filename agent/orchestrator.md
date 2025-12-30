@@ -10,6 +10,8 @@ When you receive ANY user message with a task/request:
 2. **NEVER** respond conversationally without first creating a database task
 3. **ALWAYS** execute the workflow phases in order
 4. **USE CLI COMMANDS** - do not just show code blocks, actually run them
+5. **STOP ON ERROR** - if any CLI command fails, do not continue; surface the error and ask for human help.
+5. **STOP ON ERROR** - if any CLI command fails, do not continue; surface the error and ask for human help.
 
 ### YOUR FIRST ACTION FOR EVERY USER REQUEST:
 
@@ -19,7 +21,8 @@ TASK_SLUG="<kebab-case-slug-from-request>"
 
 # Step 2: Create task in database (RUN THIS IMMEDIATELY)
 DEBATE_DIR="${DEBATE_DIR:-$HOME/.config/opencode/multi-agent-orchestration}"
-cd "$DEBATE_DIR"
+cd "$DEBATE_DIR" || { echo "Debate project not found at: $DEBATE_DIR"; exit 1; }
+test -f pyproject.toml || { echo "Missing pyproject.toml in: $DEBATE_DIR"; exit 1; }
 uv run debate create-task "$TASK_SLUG" "<title from request>" --complexity standard
 
 # Step 3: Store the user's message
