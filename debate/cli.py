@@ -10,8 +10,6 @@ from rich.table import Table
 
 from . import db
 from .config import settings
-from .invoke_parallel import invoke_parallel
-from .orchestrate import orchestrate
 from .role_config import Role
 from .run_agent import AgentType, run_agent
 from .verify import verify_task
@@ -32,13 +30,20 @@ def main() -> None:
 @main.command()
 @click.argument("request")
 @click.option("--skip-explore", is_flag=True, help="Skip exploration phase")
-@click.option("--max-rounds", default=3, help="Maximum debate rounds")
+@click.option(
+    "--max-rounds",
+    default=settings.max_rounds,
+    show_default=True,
+    help="Maximum debate rounds (upper bound; may be lowered based on triage)",
+)
 def start(request: str, skip_explore: bool, max_rounds: int) -> None:
     """Start a new task with the given request.
 
     REQUEST: Description of what you want to accomplish
     """
-    asyncio.run(orchestrate(request))
+    from .langgraph_app import orchestrate
+
+    asyncio.run(orchestrate(request, skip_explore=skip_explore, max_rounds=max_rounds))
 
 
 @main.command()
@@ -150,6 +155,61 @@ def list_tasks(limit: int, status_filter: str | None) -> None:
 
 @main.command()
 @click.argument("task_slug")
+def costs(task_slug: str) -> None:
+    """Show cost summary for a task.
+
+    TASK_SLUG: The task identifier (e.g., auth-refactor)
+    """
+
+    def money(value: object) -> str:
+        try:
+            return f"${float(value):.4f}"
+        except Exception:
+            return "$0.0000"
+
+    def fmt_int(value: object) -> str:
+        try:
+            return f"{int(value):,}"
+        except Exception:
+            return "0"
+
+    async def show_costs() -> None:
+        async with db.get_session() as session:
+            task = await db.get_task_by_slug(session, task_slug)
+            if not task:
+                console.print(f"[red]Task not found: {task_slug}[/red]")
+                raise SystemExit(1)
+
+            summary = await db.get_task_costs(session, task)
+
+        console.print(
+            Panel(
+                f"Total Cost: {money(summary['total_cost'])}\n"
+                f"Total Tokens: {fmt_int(summary['total_tokens'])}\n"
+                f"Input Tokens: {fmt_int(summary['input_tokens'])}\n"
+                f"Output Tokens: {fmt_int(summary['output_tokens'])}",
+                title=f"Cost Summary: {task_slug}",
+            )
+        )
+
+        table = Table(title="Cost by Agent")
+        table.add_column("Agent", style="cyan")
+        table.add_column("Cost", justify="right")
+        table.add_column("Tokens", justify="right")
+
+        for row in summary["by_agent"]:
+            table.add_row(
+                str(row["agent"]),
+                money(row["total_cost"]),
+                fmt_int(row["total_tokens"]),
+            )
+        console.print(table)
+
+    asyncio.run(show_costs())
+
+
+@main.command()
+@click.argument("task_slug")
 @click.argument("agent", type=click.Choice(["gemini", "claude", "codex"]))
 @click.option("--round", "-r", "round_number", default=1, help="Round number")
 @click.option("--phase", default="analysis", help="Workflow phase")
@@ -178,19 +238,6 @@ def run_role(task_slug: str, role: str, round_number: int, phase: str) -> None:
     asyncio.run(
         run_agent_by_role(task_slug, Role(role), round_number=round_number, phase=phase_enum)
     )
-
-
-@main.command()
-@click.argument("task_slug")
-@click.option("--round", "-r", "round_number", default=1, help="Round number")
-def parallel(task_slug: str, round_number: int) -> None:
-    """Run planner roles in parallel for a task.
-
-    Defaults to planner_primary + planner_secondary (see `debate role-config`).
-
-    TASK_SLUG: The task identifier
-    """
-    asyncio.run(invoke_parallel(task_slug, round_number))
 
 
 @main.command(name="schema-check", help="Check DB schema readiness for current code.")
@@ -254,27 +301,10 @@ def resume(task_slug: str) -> None:
 
     TASK_SLUG: The task identifier
     """
+    from .langgraph_app import resume as resume_langgraph
 
-    async def do_resume() -> None:
-        async with db.get_session() as session:
-            task = await db.get_task_by_slug(session, task_slug)
-            if not task:
-                console.print(f"[red]Task not found: {task_slug}[/red]")
-                return
-
-            if task.status == "completed":
-                console.print(f"[yellow]Task {task_slug} is already completed[/yellow]")
-                return
-
-            console.print(f"[green]Resuming task: {task_slug}[/green]")
-            console.print(f"Current status: {task.status}, Round: {task.current_round}")
-
-            # Build context and continue orchestration
-            context = await db.build_task_context(session, task, task.current_round)
-
-        await orchestrate(context.get("original_request", task.title))
-
-    asyncio.run(do_resume())
+    ok = asyncio.run(resume_langgraph(task_slug))
+    raise SystemExit(0 if ok else 1)
 
 
 @main.command()

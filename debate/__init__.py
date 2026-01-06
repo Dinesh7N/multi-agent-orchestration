@@ -38,13 +38,7 @@ from debate.run_agent import AgentResult, AgentType, Phase
 # Task triage
 from debate.triage import Complexity, TaskTriager, TriageResult
 
-# Workflow components
-from debate.workflow.base import (
-    WorkflowContext,
-    WorkflowResult,
-    WorkflowStatus,
-    WorkflowStep,
-)
+from debate.langgraph_app import orchestrate as orchestrate_langgraph
 
 __all__ = [
     # Version
@@ -72,11 +66,8 @@ __all__ = [
     "TaskTriager",
     "TriageResult",
     "Complexity",
-    # Workflow
-    "WorkflowStatus",
-    "WorkflowContext",
-    "WorkflowResult",
-    "WorkflowStep",
+    # Orchestration
+    "orchestrate_langgraph",
     # Agent
     "AgentType",
     "Phase",

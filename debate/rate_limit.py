@@ -1,24 +1,16 @@
-"""Redis-backed rate limiting helpers."""
+"""Rate limiting helpers.
+
+This project used to implement rate limiting via Redis + Lua.
+As part of the LangGraph rewrite, we keep a simple *in-process* limiter to avoid
+extra infrastructure. This is best-effort and not cross-process.
+"""
 
 from __future__ import annotations
 
 import asyncio
 import time
-from pathlib import Path
-from typing import Final
 
 from .config import settings
-from .redis_client import get_redis_client
-
-_RATE_LIMIT_LUA: str | None = None
-_LUA_PATH: Final[Path] = Path(__file__).with_name("lua") / "rate_limit.lua"
-
-
-def _load_lua() -> str:
-    global _RATE_LIMIT_LUA
-    if _RATE_LIMIT_LUA is None:
-        _RATE_LIMIT_LUA = _LUA_PATH.read_text()
-    return _RATE_LIMIT_LUA
 
 
 def _limits_for(api_type: str) -> tuple[int, int]:
@@ -30,16 +22,22 @@ def _limits_for(api_type: str) -> tuple[int, int]:
     return limits.get(api_type, (10, 60))
 
 
+# In-process counter: (api_type, bucket_start) -> count
+_COUNTS: dict[tuple[str, int], int] = {}
+_LOCK = asyncio.Lock()
+
+
 async def acquire_rate_limit(api_type: str) -> bool:
     """Acquire a token for the API type. Returns True if allowed."""
     limit, window = _limits_for(api_type)
-    bucket = int(time.time() // window)
-    key = f"ratelimit:{api_type}:{bucket}"
-
-    redis = get_redis_client()
-    lua = _load_lua()
-    result = await redis.eval(lua, 1, key, limit, window)
-    return result == 1
+    bucket = int(time.time() // window) * window
+    key = (api_type, bucket)
+    async with _LOCK:
+        used = _COUNTS.get(key, 0)
+        if used >= limit:
+            return False
+        _COUNTS[key] = used + 1
+        return True
 
 
 async def wait_for_rate_limit(api_type: str) -> bool:
@@ -49,11 +47,7 @@ async def wait_for_rate_limit(api_type: str) -> bool:
 
     deadline = time.time() + settings.redis_rate_limit_wait_seconds
     while time.time() < deadline:
-        try:
-            if await acquire_rate_limit(api_type):
-                return True
-        except Exception:
-            # If Redis is unavailable, do not block agent execution.
+        if await acquire_rate_limit(api_type):
             return True
 
         await asyncio.sleep(1)

@@ -45,11 +45,12 @@ dependencies = [
     "python-dotenv==1.2.1",
     "pydantic==2.12.5",
     "pydantic-settings==2.12.0",
-    "redis==7.1.0",
     "rich==14.2.0",
     "anyio==4.12.0",
     "httpx==0.28.1",
     "httpx-sse==0.4.3",
+    "langgraph>=0.2.0",
+    "langgraph-checkpoint-postgres>=3.0.2",
 ]
 
 [project.urls]
@@ -71,11 +72,7 @@ dev = [
 
 [project.scripts]
 debate = "debate.cli:main"
-orchestrate = "debate.orchestrate:main"
 run-agent = "debate.run_agent:main"
-gemini-worker = "debate.workers.gemini_worker:main"
-claude-worker = "debate.workers.claude_worker:main"
-codex-worker = "debate.workers.codex_worker:main"
 
 [build-system]
 requires = ["hatchling"]

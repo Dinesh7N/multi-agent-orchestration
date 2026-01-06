@@ -221,21 +221,3 @@ async def persist_event_handler(event: DebateEvent) -> None:
 
 
 event_bus.on_event(persist_event_handler)
-
-
-async def publish_event_handler(event: DebateEvent) -> None:
-    """Handler that publishes events to Redis Pub/Sub."""
-    if not event.task_id:
-        return
-
-    try:
-        from .redis_client import get_redis_client
-
-        redis = get_redis_client()
-        channel = f"channel:task:{event.task_id}"
-        await redis.publish(channel, json.dumps(event.to_dict()))
-    except Exception as exc:
-        print(f"Redis publish failed: {exc}")
-
-
-event_bus.on_event(publish_event_handler)

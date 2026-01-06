@@ -352,10 +352,8 @@ class Disagreement(Base):
         UUID(as_uuid=False), ForeignKey("consensus.id", ondelete="CASCADE")
     )
     topic: Mapped[str] = mapped_column(String, nullable=False)
-    gemini_position: Mapped[str] = mapped_column(Text, nullable=False)
-    gemini_evidence: Mapped[str | None] = mapped_column(Text, nullable=True)
-    claude_position: Mapped[str] = mapped_column(Text, nullable=False)
-    claude_evidence: Mapped[str | None] = mapped_column(Text, nullable=True)
+    positions: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    evidence: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=dict)
     impact: Mapped[str | None] = mapped_column(Text, nullable=True)
     human_decision: Mapped[str | None] = mapped_column(String, nullable=True)
     resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -490,85 +488,6 @@ class CostLog(Base):
 
 
 # =============================================================================
-# GLOBAL TABLES (Cross-task persistent memory)
-# =============================================================================
-
-
-class Memory(Base):
-    """Long-term facts learned from debates."""
-
-    __tablename__ = "memories"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    source_task_id: Mapped[str | None] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True
-    )
-    category: Mapped[str] = mapped_column(String, nullable=False)
-    key: Mapped[str] = mapped_column(String, nullable=False)
-    value: Mapped[str] = mapped_column(Text, nullable=False)
-    context: Mapped[str | None] = mapped_column(Text, nullable=True)
-    confidence: Mapped[Decimal] = mapped_column(Numeric(3, 2), default=1.0)
-    times_referenced: Mapped[int] = mapped_column(Integer, default=0)
-    last_referenced_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    __table_args__ = (UniqueConstraint("category", "key"),)
-
-
-class Pattern(Base):
-    """Code patterns/conventions learned."""
-
-    __tablename__ = "patterns"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    pattern_type: Mapped[str] = mapped_column(String, nullable=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    examples: Mapped[dict[str, Any]] = mapped_column(JSONB, default=list)
-    applies_to: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
-    source_tasks: Mapped[list[str] | None] = mapped_column(
-        ARRAY(UUID(as_uuid=False)), nullable=True
-    )
-    times_applied: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    __table_args__ = (UniqueConstraint("pattern_type", "name"),)
-
-
-class Preference(Base):
-    """User preferences."""
-
-    __tablename__ = "preferences"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    key: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    value: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    set_by: Mapped[str] = mapped_column(String, default="human")
-    source_task_id: Mapped[str | None] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-
-# =============================================================================
 # CONFIG TABLES
 # =============================================================================
 
@@ -584,89 +503,3 @@ class Guardrail(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-
-
-class HumanIntervention(Base):
-    """Async human interventions during workflow."""
-
-    __tablename__ = "human_interventions"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    task_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="CASCADE")
-    )
-    intervention_type: Mapped[str] = mapped_column(String, nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    target_agent: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    acknowledged: Mapped[bool] = mapped_column(Boolean, default=False)
-    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-
-class Artifact(Base):
-    """Large outputs (diagrams, diffs, patches)."""
-
-    __tablename__ = "artifacts"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    task_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="CASCADE")
-    )
-    round_id: Mapped[str | None] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("rounds.id", ondelete="CASCADE"), nullable=True
-    )
-    agent: Mapped[str | None] = mapped_column(String, nullable=True)
-    artifact_type: Mapped[str] = mapped_column(String, nullable=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    content_hash: Mapped[str | None] = mapped_column(String, nullable=True)
-    metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-class FileSnapshot(Base):
-    """Track file state when agents read them."""
-
-    __tablename__ = "file_snapshots"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    task_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="CASCADE")
-    )
-    round_id: Mapped[str | None] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("rounds.id"), nullable=True
-    )
-    file_path: Mapped[str] = mapped_column(String, nullable=False)
-    content_hash: Mapped[str] = mapped_column(String, nullable=False)
-    line_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    byte_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    snapshot_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-
-    __table_args__ = (UniqueConstraint("task_id", "round_id", "file_path"),)
-
-
-class Review(Base):
-    """Code review results."""
-
-    __tablename__ = "reviews"
-
-    id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
-    )
-    task_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("tasks.id", ondelete="CASCADE")
-    )
-    agent: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
-    issues: Mapped[dict[str, Any]] = mapped_column(JSONB, default=list)
-    raw_output: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

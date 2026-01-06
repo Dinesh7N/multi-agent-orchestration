@@ -103,9 +103,6 @@ CONFLICT SUMMARY:
 PREVIOUS ROUND ANALYSES:
 {_format_analyses(context.get("previous_analyses", []))}
 
-MEMORIES:
-{_format_memories(context.get("memories", []))}
-
 === END CONTEXT ===
 
 NOW EXECUTE YOUR ANALYSIS FOR: {task_slug} (Round {round_number}, Phase: {phase.value})
@@ -144,12 +141,6 @@ def _format_analyses(analyses: list[dict[str, Any]]) -> str:
     return "\n".join(f"  [{a['agent']}]: {a.get('summary', '(no summary)')}" for a in analyses)
 
 
-def _format_memories(memories: list[dict[str, Any]]) -> str:
-    if not memories:
-        return "(none)"
-    return "\n".join(f"  {m['category']}/{m['key']}: {m['value']}" for m in memories[:10])
-
-
 def _format_explorations(explorations: list[dict[str, Any]]) -> str:
     if not explorations:
         return "(none)"
@@ -180,11 +171,15 @@ def _format_conflicts(conflicts: list[dict[str, Any]]) -> str:
         return "(none)"
     lines: list[str] = []
     for c in conflicts:
+        positions = c.get("positions")
+        if isinstance(positions, dict) and positions:
+            positions_block = "\n".join(f"  - {k}: {v}" for k, v in sorted(positions.items()))
+        else:
+            positions_block = "  (none)"
         lines.append(
-            "  Topic: {topic}\n  Gemini: {gemini}\n  Claude: {claude}\n  Impact: {impact}".format(
+            "  Topic: {topic}\n  Positions:\n{positions}\n  Impact: {impact}".format(
                 topic=c.get("topic"),
-                gemini=c.get("gemini_position"),
-                claude=c.get("claude_position"),
+                positions=positions_block,
                 impact=c.get("impact") or "",
             )
         )

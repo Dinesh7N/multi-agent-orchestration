@@ -6,22 +6,24 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import settings
+from .errors import SchemaNotInitializedError, is_schema_missing_error, schema_not_initialized_message
 from .models import (
     Analysis,
     Base,
     Consensus,
     Conversation,
+    CostLog,
     Decision,
     Disagreement,
     ExecutionLog,
     Exploration,
     Finding,
     ImplTask,
-    Memory,
     Question,
     Round,
     Task,
@@ -45,8 +47,12 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as exc:
             await session.rollback()
+            if isinstance(exc, SQLAlchemyError) and is_schema_missing_error(exc):
+                raise SchemaNotInitializedError(
+                    schema_not_initialized_message(exc)
+                ) from exc
             raise
 
 
@@ -59,6 +65,88 @@ async def get_task_by_slug(session: AsyncSession, slug: str) -> Task | None:
     """Get a task by its slug."""
     result = await session.execute(select(Task).where(Task.slug == slug))
     return result.scalar_one_or_none()
+
+
+async def get_task_costs(session: AsyncSession, task: Task) -> dict[str, Any]:
+    """Return cost/tokens breakdown for a task from the cost_log table."""
+    totals_row = (
+        await session.execute(
+            select(
+                func.coalesce(func.sum(CostLog.total_cost), 0),
+                func.coalesce(func.sum(CostLog.total_tokens), 0),
+                func.coalesce(func.sum(CostLog.input_tokens), 0),
+                func.coalesce(func.sum(CostLog.output_tokens), 0),
+            ).where(CostLog.task_id == task.id)
+        )
+    ).one()
+
+    total_cost: Decimal = totals_row[0]
+    total_tokens: int = int(totals_row[1] or 0)
+    total_input_tokens: int = int(totals_row[2] or 0)
+    total_output_tokens: int = int(totals_row[3] or 0)
+
+    by_agent_rows = (
+        await session.execute(
+            select(
+                CostLog.agent,
+                func.coalesce(func.sum(CostLog.total_cost), 0),
+                func.coalesce(func.sum(CostLog.total_tokens), 0),
+                func.coalesce(func.sum(CostLog.input_tokens), 0),
+                func.coalesce(func.sum(CostLog.output_tokens), 0),
+            )
+            .where(CostLog.task_id == task.id)
+            .group_by(CostLog.agent)
+            .order_by(func.sum(CostLog.total_cost).desc())
+        )
+    ).all()
+
+    by_model_rows = (
+        await session.execute(
+            select(
+                CostLog.agent,
+                CostLog.model,
+                func.coalesce(func.sum(CostLog.total_cost), 0),
+                func.coalesce(func.sum(CostLog.total_tokens), 0),
+            )
+            .where(CostLog.task_id == task.id)
+            .group_by(CostLog.agent, CostLog.model)
+            .order_by(func.sum(CostLog.total_cost).desc())
+        )
+    ).all()
+
+    by_agent: list[dict[str, Any]] = []
+    for agent, cost, tokens, in_tokens, out_tokens in by_agent_rows:
+        by_agent.append(
+            {
+                "agent": agent,
+                "total_cost": cost,
+                "total_tokens": int(tokens or 0),
+                "input_tokens": int(in_tokens or 0),
+                "output_tokens": int(out_tokens or 0),
+            }
+        )
+
+    by_model: list[dict[str, Any]] = []
+    for agent, model, cost, tokens in by_model_rows:
+        by_model.append(
+            {
+                "agent": agent,
+                "model": model,
+                "total_cost": cost,
+                "total_tokens": int(tokens or 0),
+            }
+        )
+
+    return {
+        "task_slug": task.slug,
+        "task_id": task.id,
+        "total_cost": total_cost,
+        "total_tokens": total_tokens,
+        "input_tokens": total_input_tokens,
+        "output_tokens": total_output_tokens,
+        "by_agent": by_agent,
+        "by_model": by_model,
+    }
 
 
 async def get_task_by_id(session: AsyncSession, task_id: str) -> Task | None:
@@ -694,25 +782,6 @@ async def log_event(
 
 
 # =============================================================================
-# Memory Operations
-# =============================================================================
-
-
-async def get_memories(
-    session: AsyncSession,
-    categories: list[str] | None = None,
-    limit: int = 20,
-) -> list[Memory]:
-    """Get relevant memories."""
-    query = select(Memory).order_by(Memory.confidence.desc(), Memory.times_referenced.desc())
-    if categories:
-        query = query.where(Memory.category.in_(categories))
-    query = query.limit(limit)
-    result = await session.execute(query)
-    return list(result.scalars().all())
-
-
-# =============================================================================
 # Context Building (for agent prompts)
 # =============================================================================
 
@@ -727,9 +796,6 @@ async def build_task_context(
     """Build complete context for an agent prompt."""
     conversations = await get_conversations(session, task)
     decisions = await get_decisions(session, task)
-    memories = await get_memories(
-        session, ["coding_standard", "architecture", "preference", "security"]
-    )
     explorations = await get_explorations(session, task) if include_exploration else []
     disagreements = await get_open_disagreements(session, task)
 
@@ -758,7 +824,6 @@ async def build_task_context(
             {"question": q.question, "answer": q.answer, "category": q.category}
             for q in answered_questions
         ],
-        "memories": [{"category": m.category, "key": m.key, "value": m.value} for m in memories],
         "explorations": [
             {
                 "agent": e.agent,
@@ -775,8 +840,8 @@ async def build_task_context(
         "conflict_summary": [
             {
                 "topic": d.topic,
-                "gemini_position": d.gemini_position,
-                "claude_position": d.claude_position,
+                "positions": d.positions,
+                "evidence": d.evidence,
                 "impact": d.impact,
             }
             for d in disagreements
